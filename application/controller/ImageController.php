@@ -19,10 +19,25 @@ class ImageController extends AbstractZeitfadenController
     ), parent::declareDependencies());  
   }
       
-  protected function getFlySpecForSize($size)
+  protected function getFlySpecForSize($size,$format)
   {
     $flySpec = new FlyImageSpecification();
-    $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_INSIDE);
+    
+    switch ($format)
+    {
+      case 'original':
+        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_INSIDE);
+        break;
+        
+      case 'square':
+        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        break;
+        
+      default:
+        throw new \ErrorException('no format given');
+        
+    }
+    
     
     switch ($size)
     {
@@ -53,27 +68,18 @@ class ImageController extends AbstractZeitfadenController
   {
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->_request->getParam('imageSize','medium');
-    //$imageUrl = 'http://goldenageofgaia.com/wp-content/uploads/2012/12/Field-flowers-image8.jpg';
+    $format =  $this->_request->getParam('format','original');
     
-    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize));
-    //$flyDocument = $this->getFlyImageService()->getFly($imageUrl, $this->getFlySpecForSize($imageSize));
+    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format));
     $fileTime = $gridFile->file['uploadDate']->sec;
-    //$resource = $this->getFlyImageService()->getResourceForFly($flyDocument);
-    
-    //$bytes = $this->getFlyImageService()->getBytesForFly($flyDocument);
 
     $this->_response->addHeader('Content-type: image/jpeg');
     $this->_response->addHeader('Content-Length: '.$gridFile->getSize());
     $this->_response->addHeader('Cache-Control: maxage='.(60*60*24*31));
     $this->_response->addHeader('Last-Modified: '.gmdate('D, d M Y H:i:s',$fileTime).' GMT',true,200);
     $this->_response->addHeader('Expires: '.gmdate('D, d M Y H:i:s',time()+60*60*24*31).' GMT',true,200);
-    //$this->_response->setBytes($gridFile->getBytes());
     $this->_response->setStream($gridFile->getResource());
         
-    //echo $bytes;
-    //die();
-    //stream_copy_to_stream($resource, STDOUT);
-    //die('got the fly?');
   }        
     
     
@@ -81,10 +87,11 @@ class ImageController extends AbstractZeitfadenController
   {
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->_request->getParam('imageSize','medium');
+    $format =  $this->_request->getParam('format','original');
 
     try
     {
-      $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize));
+      $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format));
       $name='$id';
       $this->_response->appendValue('gridFileId', $gridFile->file['_id']->$name);
       $this->_response->appendValue('collectionName','fly_service');
