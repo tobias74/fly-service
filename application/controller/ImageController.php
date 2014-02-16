@@ -27,10 +27,22 @@ class ImageController extends AbstractZeitfadenController
     {
       case 'original':
         $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_INSIDE);
+        $faktor = 1;
         break;
         
       case 'square':
         $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        $faktor = 1;
+        break;
+
+      case '4by3':
+        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        $faktor = 4/3;
+        break;
+
+      case '9by6':
+        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        $faktor = 9/6;
         break;
         
       default:
@@ -42,17 +54,17 @@ class ImageController extends AbstractZeitfadenController
     switch ($size)
     {
       case "small": 
-        $flySpec->setMaximumWidth(100);
+        $flySpec->setMaximumWidth(100*$faktor);
         $flySpec->setMaximumHeight(100);
         break;
         
       case "medium": 
-        $flySpec->setMaximumWidth(300);
+        $flySpec->setMaximumWidth(300*$faktor);
         $flySpec->setMaximumHeight(300);
         break;
         
       case "big": 
-        $flySpec->setMaximumWidth(800);
+        $flySpec->setMaximumWidth(800*$faktor);
         $flySpec->setMaximumHeight(800);
         break;
         
