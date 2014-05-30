@@ -105,8 +105,8 @@ class FlyVideoService
 
   protected function scheduleTranscoding($document)
   {
-    $schedulerUrl = 'http://scheduler.butterfurz.de/task/schedule/queueName/videoFlyService?url=';
-    $callbackUrl = 'flyservice.butterfurz.de/video/transcode/flyId/'.$document['_id'].'/format/'.$document['specification']['format'];
+    $schedulerUrl = 'http://scheduler.zeitfaden.com/task/schedule/queueName/videoFlyService?url=';
+    $callbackUrl = 'flyservice.zeitfaden.com/video/transcode/flyId/'.$document['_id'].'/format/'.$document['specification']['format'];
     error_log($schedulerUrl.$callbackUrl);
     $r = new HttpRequest($schedulerUrl.$callbackUrl, HttpRequest::METH_GET);
     $r->send();

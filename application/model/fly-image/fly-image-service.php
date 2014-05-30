@@ -43,7 +43,40 @@ class ZeitfadenFlyImageService
     $gridFS = $this->mongoDb->getGridFS();
     return $gridFS->findOne(array('metadata.fly_id' => $flyDocument['_id']));
 	  	  
-	}			
+	}	
+
+
+
+
+
+	
+	protected function getAllFlys($imageIdUrl)
+	{
+		$docs = array();
+		$cursor = $this->collection->find(array('image_id_url'=> $imageIdUrl));
+		foreach ($cursor as $doc)
+		{
+			$docs[] = $doc;
+		}
+		return $docs;
+	}	
+	
+	public function deleteAllFlys($imageIdUrl)
+	{
+		$gridFS = $this->mongoDb->getGridFS();
+		
+		$allFlys = $this->getAllFlys($imageIdUrl);
+
+		foreach ($allFlys as $flyDocument)
+		{
+		  	$gridFiles[] = $gridFS->remove(array('metadata.fly_id' => $flyDocument['_id']));
+		}
+		
+		$this->collection->remove(array('image_id_url'=> $imageIdUrl));
+					
+	}
+	
+	
 		
 	public function getFly($imageIdUrl, $flySpec)
 	{

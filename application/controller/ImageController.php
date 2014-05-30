@@ -142,6 +142,13 @@ class ImageController extends AbstractZeitfadenController
     
   }
   
+  public function clearAllAction()
+  {
+    $imageUrl = $this->_request->getParam('imageUrl','');
+    $this->getFlyImageService()->deleteAllFlys($imageUrl);
+  	
+  }
+  
 }
 
 
