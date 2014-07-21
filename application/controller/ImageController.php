@@ -50,37 +50,64 @@ class ImageController extends AbstractZeitfadenController
         
     }
     
-    
-    switch ($size)
-    {
-      case "small": 
-        $flySpec->setMaximumWidth(100*$faktor);
-        $flySpec->setMaximumHeight(100);
-        break;
-        
-      case "medium": 
-        $flySpec->setMaximumWidth(300*$faktor);
-        $flySpec->setMaximumHeight(300);
-        break;
-        
-      case "big": 
-        $flySpec->setMaximumWidth(800*$faktor);
-        $flySpec->setMaximumHeight(800);
-        break;
-        
-      default:
-        throw new ErrorException('Coding problem in zeitafrden fadcede');
-    }
+    if (is_string($size))
+	{
+	    switch ($size)
+	    {
+	      case "small": 
+	        $flySpec->setMaximumWidth(100*$faktor);
+	        $flySpec->setMaximumHeight(100);
+	        break;
+	        
+	      case "medium": 
+	        $flySpec->setMaximumWidth(300*$faktor);
+	        $flySpec->setMaximumHeight(300);
+	        break;
+	        
+	      case "big": 
+	        $flySpec->setMaximumWidth(800*$faktor);
+	        $flySpec->setMaximumHeight(800);
+	        break;
+	        
+	      default:
+	        throw new ErrorException('Coding problem in zeitafrden fadcede');
+	    }
+	}
+	else
+	{
+        $flySpec->setMaximumWidth($size['width']*$faktor);
+        $flySpec->setMaximumHeight($size['height']);
+	}
     
     return $flySpec;
   }
-    
+  
+  protected function getImageSize()
+  {
+    $imageSize = $this->_request->getParam('imageSize','medium');
+
+
+	if ($imageSize === 'custom')
+	{
+		$width = $this->_request->getParam('width',100);		
+		$height = $this->_request->getParam('height',100);		
+		$imageSize = array(
+			'height' => $height,
+			'width' => $width
+		);
+	}
+	
+	return $imageSize;
+	  	
+  }
   
   public function getFlyImageAction()
   {
-    $imageUrl = $this->_request->getParam('imageUrl','');
-    $imageSize = $this->_request->getParam('imageSize','medium');
+    error_log('111111112222gut hier.');
+  	
     $format =  $this->_request->getParam('format','original');
+    $imageUrl = $this->_request->getParam('imageUrl','');
+    $imageSize = $this->getImageSize();
     
     $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format));
     $fileTime = $gridFile->file['uploadDate']->sec;
@@ -97,9 +124,9 @@ class ImageController extends AbstractZeitfadenController
     
   public function getFlyImageIdAction()
   {
-    $imageUrl = $this->_request->getParam('imageUrl','');
-    $imageSize = $this->_request->getParam('imageSize','medium');
     $format =  $this->_request->getParam('format','original');
+    $imageUrl = $this->_request->getParam('imageUrl','');
+    $imageSize = $this->getImageSize();
 
     try
     {
