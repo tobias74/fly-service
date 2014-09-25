@@ -117,6 +117,7 @@ class ZeitfadenFlyImageService
     }
     catch (Exception $e)
     {
+      error_log($e->getMessage());
       error_log('copuld not find image '.$imageIdUrl);	
       die();
       $origi=ImageCreate(150,150);
