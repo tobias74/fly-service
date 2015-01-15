@@ -76,6 +76,10 @@ class ImageController extends AbstractZeitfadenController
 	        $flySpec->setMaximumHeight(800);
 	        break;
 	        
+        case "original":
+          $flySpec->useOriginalSize();
+          break;
+          
 	      default:
 	        throw new ErrorException('Coding problem in zeitafrden fadcede');
 	    }
@@ -91,24 +95,24 @@ class ImageController extends AbstractZeitfadenController
   
   protected function getImageSize()
   {
-    $imageSize = $this->_request->getParam('imageSize','medium');
+    $imageSize = $this->_request->getParam('imageSize','original');
 
 
-	if ($imageSize === 'custom')
-	{
-		$width = $this->_request->getParam('width',100);		
-		$height = $this->_request->getParam('height',100);		
-		$imageSize = array(
-			'height' => $height,
-			'width' => $width
-		);
-	}
-	
-	return $imageSize;
+  	if ($imageSize === 'custom')
+  	{
+  		$width = $this->_request->getParam('width',100);		
+  		$height = $this->_request->getParam('height',100);		
+  		$imageSize = array(
+  			'height' => $height,
+  			'width' => $width
+  		);
+  	}
+  	
+  	return $imageSize;
 	  	
   }
   
-  public function getFlyImageAction()
+  public function getCachedImageAction()
   {
     error_log('111111112222gut hier.');
   	

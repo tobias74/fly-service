@@ -147,192 +147,204 @@ class ZeitfadenFlyImageService
       ImageString($origi,1,5,10,"Error loading Image ".$imageIdUrl,$tc);
     }
         
-	    	    
-    switch ($flySpec->getMode())
+        
+    if ($flySpec->isOriginalSize())
     {
-    	case FlyImageSpecification::TOUCH_BOX_FROM_INSIDE:
-    		
-		    $originalWidth = imagesx($origi);
-		    $originalHeight = imagesy($origi);
-		    
-		    $newWidth = $flySpec->getMaximumWidth();
-		    $newHeight = (int) (($flySpec->getMaximumWidth() / $originalWidth) * $originalHeight);
-		    if ($newHeight > $flySpec->getMaximumHeight())
-		    {
-		        $newHeight = $flySpec->getMaximumHeight();
-		        $newWidth = (int) (($flySpec->getMaximumHeight() / $originalHeight) * $originalWidth);
-		    }
-	
-		    $im = imagecreatetruecolor($newWidth, $newHeight);
-		    imagecopyresampled($im,$origi,0,0,0,0, $newWidth, $newHeight, $originalWidth ,$originalHeight);
-    		
-		    
-    		break;
-
-
-
-      case FlyImageSpecification::SQUARE:
-        
-        $originalWidth = imagesx($origi);
-        $originalHeight = imagesy($origi);
-        
-        
-        // first make it square
-        if ($originalHeight > $originalWidth)
-        {
-          $targetX = 0;
-          $targetY = 0;
-          $targetWidth = $originalWidth;
-          $targetHeight = $originalWidth;
+      $newWidth = imagesx($origi);
+      $newHeight = imagesy($origi);
+      $im = $origi;
+      
+    } 
+    else
+    {
+      switch ($flySpec->getMode())
+      {
+        case FlyImageSpecification::TOUCH_BOX_FROM_INSIDE:
           
-          $centerY = round($originalHeight/2);
-          $sourceY = $centerY - round($targetHeight/2);
-          $sourceX = 0; 
-          $sourceWidth = $originalWidth;
-          $sourceHeight = $originalWidth;
-        }
-        else
-        {
-          $targetX = 0;
-          $targetY = 0;
-          $targetHeight = $originalHeight;
-          $targetWidth = $originalHeight;
+          $originalWidth = imagesx($origi);
+          $originalHeight = imagesy($origi);
           
-          $centerX = round($originalWidth/2);
-          $sourceX = $centerX - round($targetWidth/2);
-          $sourceY = 0; 
-          $sourceWidth = $originalHeight;
-          $sourceHeight = $originalHeight;
+          $newWidth = $flySpec->getMaximumWidth();
+          $newHeight = (int) (($flySpec->getMaximumWidth() / $originalWidth) * $originalHeight);
+          if ($newHeight > $flySpec->getMaximumHeight())
+          {
+              $newHeight = $flySpec->getMaximumHeight();
+              $newWidth = (int) (($flySpec->getMaximumHeight() / $originalHeight) * $originalWidth);
+          }
+    
+          $im = imagecreatetruecolor($newWidth, $newHeight);
+          imagecopyresampled($im,$origi,0,0,0,0, $newWidth, $newHeight, $originalWidth ,$originalHeight);
           
-        }
-        
+          
+          break;
   
-        $im = imagecreatetruecolor($targetWidth, $targetHeight);
-        imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
-                
-        
-        
-        // both should be equal
-        $newWidth = $flySpec->getMaximumWidth();
-        $newHeight = $flySpec->getMaximumHeight();
-        
-        
-        
-        break;
-        
-        
-        
-        
-      case FlyImageSpecification::TOUCH_FROM_INSIDE_TO_4_3:
-        $newAspectRatio = 8/3;
-        
-        $originalWidth = imagesx($origi);
-        $originalHeight = imagesy($origi);
-        $originalAspectRatio = $originalWidth/$originalHeight;
-        
-        if ($originalAspectRatio > $newAspectRatio)
-        {
-          // this means we have to cut a little from the left and the right.
-          // the height will stay the same
-          $targetHeight = $originalHeight;
+  
+  
+        case FlyImageSpecification::SQUARE:
           
-          $faktor = $newAspectRatio/$originalAspectRatio;
-          $targetWidth = round($originalWidth*$faktor);
-          $cutX = $originalWidth - $targetWidth;
-          $sourceX = round($cutX/2);
-          $sourceY = 0;
-          $targetX = 0;
-          $targetY = 0;
-        }
-        else 
-        {
-          // this means we have to cut a little from the top and bottom.
-          // the height will stay the same
-          $targetWidth = $originalWidth;
+          $originalWidth = imagesx($origi);
+          $originalHeight = imagesy($origi);
           
-          $faktor = $originalAspectRatio/$newAspectRatio;
-          $targetHeight = round($originalHeight*$faktor);
-          $cutY = $originalHeight - $targetHeight;
-          $sourceX = 0;
-          $sourceY = round($cutY/2);
-          $targetX = 0;
-          $targetY = 0;
-        }
-
-        $sourceHeight = $targetHeight;
-        $sourceWidth = $targetWidth;
-         
-        $im = imagecreatetruecolor($targetWidth, $targetHeight);
-        imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
-
-
-        $newWidth = $flySpec->getMaximumWidth();
-        $newHeight = $flySpec->getMaximumHeight();
-
-        break;
-        
-
-      case FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE:
-
-        $maxWidth = $flySpec->getMaximumWidth();
-        $maxHeight = $flySpec->getMaximumHeight();
-
-        $newAspectRatio = $maxWidth/$maxHeight;
-        
-        $originalWidth = imagesx($origi);
-        $originalHeight = imagesy($origi);
-        $originalAspectRatio = $originalWidth/$originalHeight;
-        
-        if ($originalAspectRatio > $newAspectRatio)
-        {
-          // this means we have to cut a little from the left and the right.
-          // the height will stay the same
-          $targetHeight = $originalHeight;
           
-          $faktor = $newAspectRatio/$originalAspectRatio;
-          $targetWidth = round($originalWidth*$faktor);
-          $cutX = $originalWidth - $targetWidth;
-          $sourceX = round($cutX/2);
-          $sourceY = 0;
-          $targetX = 0;
-          $targetY = 0;
-        }
-        else 
-        {
-          // this means we have to cut a little from the top and bottom.
-          // the height will stay the same
-          $targetWidth = $originalWidth;
+          // first make it square
+          if ($originalHeight > $originalWidth)
+          {
+            $targetX = 0;
+            $targetY = 0;
+            $targetWidth = $originalWidth;
+            $targetHeight = $originalWidth;
+            
+            $centerY = round($originalHeight/2);
+            $sourceY = $centerY - round($targetHeight/2);
+            $sourceX = 0; 
+            $sourceWidth = $originalWidth;
+            $sourceHeight = $originalWidth;
+          }
+          else
+          {
+            $targetX = 0;
+            $targetY = 0;
+            $targetHeight = $originalHeight;
+            $targetWidth = $originalHeight;
+            
+            $centerX = round($originalWidth/2);
+            $sourceX = $centerX - round($targetWidth/2);
+            $sourceY = 0; 
+            $sourceWidth = $originalHeight;
+            $sourceHeight = $originalHeight;
+            
+          }
           
-          $faktor = $originalAspectRatio/$newAspectRatio;
-          $targetHeight = round($originalHeight*$faktor);
-          $cutY = $originalHeight - $targetHeight;
-          $sourceX = 0;
-          $sourceY = round($cutY/2);
-          $targetX = 0;
-          $targetY = 0;
-        }
-
-        $sourceHeight = $targetHeight;
-        $sourceWidth = $targetWidth;
-         
-        $im = imagecreatetruecolor($maxWidth, $maxHeight);
-        imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $maxWidth, $maxHeight, $sourceWidth, $sourceHeight);
-
-
-        $newWidth = $flySpec->getMaximumWidth();
-        $newHeight = $flySpec->getMaximumHeight();
-
-        break;
-        
-
-    		
-    	default:
-    		throw new Exception("no fly image mode chosen?".$flySpec->getMode()  );
-        
-        
-        
-        
-    }
+    
+          $im = imagecreatetruecolor($targetWidth, $targetHeight);
+          imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
+                  
+          
+          
+          // both should be equal
+          $newWidth = $flySpec->getMaximumWidth();
+          $newHeight = $flySpec->getMaximumHeight();
+          
+          
+          
+          break;
+          
+          
+          
+          
+        case FlyImageSpecification::TOUCH_FROM_INSIDE_TO_4_3:
+          $newAspectRatio = 8/3;
+          
+          $originalWidth = imagesx($origi);
+          $originalHeight = imagesy($origi);
+          $originalAspectRatio = $originalWidth/$originalHeight;
+          
+          if ($originalAspectRatio > $newAspectRatio)
+          {
+            // this means we have to cut a little from the left and the right.
+            // the height will stay the same
+            $targetHeight = $originalHeight;
+            
+            $faktor = $newAspectRatio/$originalAspectRatio;
+            $targetWidth = round($originalWidth*$faktor);
+            $cutX = $originalWidth - $targetWidth;
+            $sourceX = round($cutX/2);
+            $sourceY = 0;
+            $targetX = 0;
+            $targetY = 0;
+          }
+          else 
+          {
+            // this means we have to cut a little from the top and bottom.
+            // the height will stay the same
+            $targetWidth = $originalWidth;
+            
+            $faktor = $originalAspectRatio/$newAspectRatio;
+            $targetHeight = round($originalHeight*$faktor);
+            $cutY = $originalHeight - $targetHeight;
+            $sourceX = 0;
+            $sourceY = round($cutY/2);
+            $targetX = 0;
+            $targetY = 0;
+          }
+  
+          $sourceHeight = $targetHeight;
+          $sourceWidth = $targetWidth;
+           
+          $im = imagecreatetruecolor($targetWidth, $targetHeight);
+          imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
+  
+  
+          $newWidth = $flySpec->getMaximumWidth();
+          $newHeight = $flySpec->getMaximumHeight();
+  
+          break;
+          
+  
+        case FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE:
+  
+          $maxWidth = $flySpec->getMaximumWidth();
+          $maxHeight = $flySpec->getMaximumHeight();
+  
+          $newAspectRatio = $maxWidth/$maxHeight;
+          
+          $originalWidth = imagesx($origi);
+          $originalHeight = imagesy($origi);
+          $originalAspectRatio = $originalWidth/$originalHeight;
+          
+          if ($originalAspectRatio > $newAspectRatio)
+          {
+            // this means we have to cut a little from the left and the right.
+            // the height will stay the same
+            $targetHeight = $originalHeight;
+            
+            $faktor = $newAspectRatio/$originalAspectRatio;
+            $targetWidth = round($originalWidth*$faktor);
+            $cutX = $originalWidth - $targetWidth;
+            $sourceX = round($cutX/2);
+            $sourceY = 0;
+            $targetX = 0;
+            $targetY = 0;
+          }
+          else 
+          {
+            // this means we have to cut a little from the top and bottom.
+            // the height will stay the same
+            $targetWidth = $originalWidth;
+            
+            $faktor = $originalAspectRatio/$newAspectRatio;
+            $targetHeight = round($originalHeight*$faktor);
+            $cutY = $originalHeight - $targetHeight;
+            $sourceX = 0;
+            $sourceY = round($cutY/2);
+            $targetX = 0;
+            $targetY = 0;
+          }
+  
+          $sourceHeight = $targetHeight;
+          $sourceWidth = $targetWidth;
+           
+          $im = imagecreatetruecolor($maxWidth, $maxHeight);
+          imagecopyresampled($im,$origi, $targetX, $targetY, $sourceX, $sourceY, $maxWidth, $maxHeight, $sourceWidth, $sourceHeight);
+  
+  
+          $newWidth = $flySpec->getMaximumWidth();
+          $newHeight = $flySpec->getMaximumHeight();
+  
+          break;
+          
+  
+          
+        default:
+          throw new Exception("no fly image mode chosen?".$flySpec->getMode()  );
+          
+          
+          
+          
+      }
+      
+    }   
+	    	    
 	    
     
     $document = array(
@@ -384,7 +396,7 @@ class FlyImageSpecification
   const TOUCH_FROM_INSIDE_TO_4_3 = "new aspect raiosquare";
   const TOUCH_BOX_FROM_OUTSIDE = "nasdasdew aspect raiosquare";
 	
-  
+  protected $useOriginalSize = false;
 	protected $maximumWidth;
 	protected $maximumHeight;
 	protected $mode;
@@ -418,6 +430,16 @@ class FlyImageSpecification
 	{
 		$this->maximumHeight = $val;
 	}
+  
+  public function useOriginalSize()
+  {
+    $this->useOriginalSize = true;
+  }
+  
+  public function isOriginalSize()
+  {
+    return $this->useOriginalSize;
+  }
 	
 	public function getHash()
 	{
