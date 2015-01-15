@@ -18,6 +18,24 @@ class ZeitfadenFlyImageService
   }
 	
   
+  public function removeExpiredImages()
+  {
+    $date = new DateTime();
+    $criteria = array('expirationTimestamp' => array('$lt' => $date->getTimestamp()));
+    
+    $gridFS = $this->mongoDb->getGridFS();
+    
+    $docs = array();
+    $cursor = $this->collection->find($criteria);
+    foreach ($cursor as $flyDocument)
+    {
+      $gridFS->remove(array('metadata.fly_id' => $flyDocument['_id']));
+    }
+    
+    $this->collection->remove($criteria);
+    
+  }
+  
   public function setProfiler($profiler)
   {
     if (!is_object($profiler))
@@ -27,19 +45,19 @@ class ZeitfadenFlyImageService
     $this->profiler = $profiler;
   }
   
-	protected function createAndMergeFly($imageIdUrl, $flySpec)
+	protected function createAndMergeFly($imageIdUrl, $flySpec, $cacheOptions)
 	{
 	  //
     $timer = $this->profiler->startTimer('creating new fly-images');
-    $flyDocument = $this->createFly($imageIdUrl, $flySpec);
+    $flyDocument = $this->createFly($imageIdUrl, $flySpec, $cacheOptions);
     $timer->stop();
     return $flyDocument;
 	  	  
 	}
 		
-  public function getFlyGridFile($imageIdUrl, $flySpec)
+  public function getFlyGridFile($imageIdUrl, $flySpec, $cacheOptions)
 	{
-	  $flyDocument = $this->getFly($imageIdUrl, $flySpec);
+	  $flyDocument = $this->getFly($imageIdUrl, $flySpec, $cacheOptions);
     $gridFS = $this->mongoDb->getGridFS();
     return $gridFS->findOne(array('metadata.fly_id' => $flyDocument['_id']));
 	  	  
@@ -47,9 +65,6 @@ class ZeitfadenFlyImageService
 
 
 
-
-
-	
 	protected function getAllFlys($imageIdUrl)
 	{
 		$docs = array();
@@ -78,16 +93,21 @@ class ZeitfadenFlyImageService
 	
 	
 		
-	public function getFly($imageIdUrl, $flySpec)
+	public function getFly($imageIdUrl, $flySpec, $cacheOptions)
 	{
-		
+		$date = new DateTime();
+    
 		$serializedSpec = $flySpec->serialize();
 		
 		$flyDocument = $this->collection->findOne(array('image_id_url'=> $imageIdUrl, 'serialized_specification' => $serializedSpec));
     
-		if (!$flyDocument)
+    error_log($flyDocument['expirationTimestamp']);
+    error_log($date->getTimestamp());
+    
+		if (!$flyDocument || ($flyDocument['expirationTimestamp'] < $date->getTimestamp()))
 		{
-		  $flyDocument = $this->createAndMergeFly($imageIdUrl, $flySpec);
+		  error_log('doing it why??????????????????');
+		  $flyDocument = $this->createAndMergeFly($imageIdUrl, $flySpec, $cacheOptions);
 		}
 		
 		return $flyDocument;
@@ -107,7 +127,7 @@ class ZeitfadenFlyImageService
     return $file->getBytes();
   }
 	
-	protected function createFly($imageIdUrl, $flySpec)
+	protected function createFly($imageIdUrl, $flySpec, $cacheOptions)
 	{
 		$timer = $this->profiler->startTimer('creating new fly-images');
 		
@@ -317,6 +337,7 @@ class ZeitfadenFlyImageService
     
     $document = array(
       'image_id_url' => $imageIdUrl,
+      'expirationTimestamp' => $cacheOptions->getExpirationTimestamp(),
       'newWidth' => $newWidth,
       'newHeight' => $newHeight,
       'specification' => $flySpec->getHash(),
@@ -339,7 +360,10 @@ class ZeitfadenFlyImageService
     $hash['fly_content_type'] = 'image/png';
     $hash['type'] = 'image/png';
 
-    $gridFS->storeFile($fileName,array("metadata" => $hash));
+    $gridFS->storeFile($fileName,array(
+      "metadata" => $hash,
+      "expirationTimestamp" => $cacheOptions->getExpirationTimestamp(),
+    ));
 	  
 	  
 	  return $document;  						
@@ -410,7 +434,28 @@ class FlyImageSpecification
 	
 }
 
+class ImageCacheOptions 
+{
+  public function setTimetoLive($ttl)
+  {
+    $date = new DateTime();
 
+    $this->timeToLive = $ttl;
+    $this->expirationTimestamp = $date->getTimestamp() + $this->timeToLive;
+  }
+
+
+  public function getTimetoLive()
+  {
+    return $this->timeToLive;
+  }
+
+  public function getExpirationTimestamp()
+  {
+    return $this->expirationTimestamp;
+  }
+
+}
 
 
 

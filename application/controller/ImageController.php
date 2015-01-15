@@ -18,6 +18,13 @@ class ImageController extends AbstractZeitfadenController
       'AttachmentHelperProvider' => 'attachmentHelperProvider'
     ), parent::declareDependencies());  
   }
+
+  protected function getCacheOptions($timeToLive)
+  {
+    $cacheOptions = new ImageCacheOptions();
+    $cacheOptions->setTimeToLive($timeToLive);
+    return $cacheOptions;
+  }
       
   protected function getFlySpecForSize($size,$format)
   {
@@ -105,12 +112,32 @@ class ImageController extends AbstractZeitfadenController
   {
     error_log('111111112222gut hier.');
   	
+    
+    
     $format =  $this->_request->getParam('format','original');
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
+    $timeToLive = $this->_request->getParam('timeToLive',3600);
     
-    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format));
+    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($timeToLive));
     $fileTime = $gridFile->file['uploadDate']->sec;
+
+    
+    if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']))
+    {
+      error_log('we did get the http if modiefed...');
+      if (strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $fileTime)
+      {
+        error_log('and we answered, not modified');
+        header('HTTP/1.0 304 Not Modified');
+        exit;
+      }
+      else
+      {
+        error_log('and we answered, yes modified, continue loading.');
+      }
+    }  
+
 
     $this->_response->addHeader('Content-type: image/jpeg');
     $this->_response->addHeader('Content-Length: '.$gridFile->getSize());
@@ -121,16 +148,23 @@ class ImageController extends AbstractZeitfadenController
         
   }        
     
+  public function removeExpiredImagesAction()
+  {
+    error_log('removing expired images');
+    $this->getFlyImageService()->removeExpiredImages();
+  }  
     
   public function getFlyImageIdAction()
   {
     $format =  $this->_request->getParam('format','original');
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
+    $timeToLive = $this->_request->getParam('timeToLive',3600);
 
+    
     try
     {
-      $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format));
+      $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($timeToLive));
       $name='$id';
       $this->_response->appendValue('gridFileId', $gridFile->file['_id']->$name);
       $this->_response->appendValue('collectionName','fly_service');
@@ -144,12 +178,6 @@ class ImageController extends AbstractZeitfadenController
     }
   }        
 
-      
-  
-  public function helloAction()
-  {
-    die('hello');
-  }  
   
   public function serveFileByIdAction()
   {
