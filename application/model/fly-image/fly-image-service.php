@@ -20,15 +20,18 @@ class ZeitfadenFlyImageService
   
   public function removeExpiredImages()
   {
+    error_log('inside this');
     $date = new DateTime();
     $criteria = array('expirationTimestamp' => array('$lt' => $date->getTimestamp()));
     
     $gridFS = $this->mongoDb->getGridFS();
-    
-    $docs = array();
+
+    error_log(print_r($criteria,true));
+        
     $cursor = $this->collection->find($criteria);
     foreach ($cursor as $flyDocument)
     {
+      error_log('found one to remove...');
       $gridFS->remove(array('metadata.fly_id' => $flyDocument['_id']));
     }
     
@@ -103,6 +106,12 @@ class ZeitfadenFlyImageService
     
     error_log($flyDocument['expirationTimestamp']);
     error_log($date->getTimestamp());
+    error_log($cacheOptions->getExpirationTimestamp());
+    if ($cacheOptions->getExpirationTimestamp() < $date->getTimestamp())
+    {
+      error_log('outdated timestamp');
+      return false;
+    }
     
 		if (!$flyDocument || ($flyDocument['expirationTimestamp'] < $date->getTimestamp()))
 		{
@@ -474,7 +483,19 @@ class ImageCacheOptions
 
   public function getExpirationTimestamp()
   {
-    return $this->expirationTimestamp;
+    return intval($this->expirationTimestamp);
+  }
+
+  public function setExpirationTimestamp($ts)
+  {
+    $date = new DateTime();
+    $maxTs = $date->getTimestamp() + 3600*24*31;
+    if ($ts > $maxTs)
+    {
+      $ts = $maxTs;
+    }    
+    
+    $this->expirationTimestamp = $ts;
   }
 
 }

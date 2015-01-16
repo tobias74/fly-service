@@ -19,10 +19,20 @@ class ImageController extends AbstractZeitfadenController
     ), parent::declareDependencies());  
   }
 
-  protected function getCacheOptions($timeToLive)
+  protected function getCacheOptions($request)
   {
     $cacheOptions = new ImageCacheOptions();
-    $cacheOptions->setTimeToLive($timeToLive);
+
+    if ($request->hasParam('expirationTimestamp'))
+    {
+      $cacheOptions->setExpirationTimestamp($request->getParam('expirationTimestamp',0));
+    }
+    else 
+    {
+      $timeToLive = $request->getParam('timeToLive',3600);
+      $cacheOptions->setTimeToLive($timeToLive);
+    }
+    
     return $cacheOptions;
   }
       
@@ -121,9 +131,8 @@ class ImageController extends AbstractZeitfadenController
     $format =  $this->_request->getParam('format','original');
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
-    $timeToLive = $this->_request->getParam('timeToLive',3600);
     
-    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($timeToLive));
+    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
     $fileTime = $gridFile->file['uploadDate']->sec;
 
     
@@ -163,12 +172,11 @@ class ImageController extends AbstractZeitfadenController
     $format =  $this->_request->getParam('format','original');
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
-    $timeToLive = $this->_request->getParam('timeToLive',3600);
 
     
     try
     {
-      $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($timeToLive));
+      $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
       $name='$id';
       $this->_response->appendValue('gridFileId', $gridFile->file['_id']->$name);
       $this->_response->appendValue('collectionName','fly_service');

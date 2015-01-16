@@ -18,6 +18,7 @@ $baseDir = dirname(__FILE__);
 
 require_once($baseDir.'/../my-frameworks/sugarloaf/sugarloaf.php');
 require_once($baseDir.'/../my-frameworks/tiro-php-profiler/tiro.php');
+require_once($baseDir.'/../my-frameworks/pivole-und-pavoli/src/pivole-und-pavoli.php');
 
 //require_once($baseDir.'/../my-frameworks/brokenpottery/brokenpottery.php');
 
@@ -29,14 +30,14 @@ require_once($baseDir.'/../my-frameworks/tiro-php-profiler/tiro.php');
 
 require_once($baseDir.'/ZeitfadenExceptions.php');
 //require_once($baseDir.'/TimeService.php');
-require_once($baseDir.'/ZeitfadenRouter.php');
+//require_once($baseDir.'/ZeitfadenRouter.php');
 require_once($baseDir.'/ZeitfadenApplication.php');
 
 
 
 
 require_once($baseDir.'/AbstractZeitfadenController.php');
-require_once($baseDir.'/ZeitfadenFrontController.php');
+//require_once($baseDir.'/ZeitfadenFrontController.php');
 
 
 require_once($baseDir.'/controller/ImageController.php');

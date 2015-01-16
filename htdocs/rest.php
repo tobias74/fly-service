@@ -1,7 +1,7 @@
 <?php 
 require_once('../application/application-files.php');
 
-$serverContext = new ApacheServerContext();
+$serverContext = new \PivoleUndPavoli\ApacheServerContext();
 //$config = new ZeitfadenConfig($_SERVER['HTTP_HOST']);
 
 $config = false;
