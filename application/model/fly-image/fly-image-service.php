@@ -15,6 +15,10 @@ class ZeitfadenFlyImageService
     
     $this->collection->ensureIndex(array('serialized_specification' => 1));
         
+    
+    $this->logCollection = $this->mongoDb->currently_running;
+    $this->logCollection->ensureIndex(array('serialized_specification' => 1));
+        
   }
 	
   
@@ -50,12 +54,10 @@ class ZeitfadenFlyImageService
   
 	protected function createAndMergeFly($imageIdUrl, $flySpec, $cacheOptions)
 	{
-	  //
     $timer = $this->profiler->startTimer('creating new fly-images');
     $flyDocument = $this->createFly($imageIdUrl, $flySpec, $cacheOptions);
     $timer->stop();
     return $flyDocument;
-	  	  
 	}
 		
   public function getFlyGridFile($imageIdUrl, $flySpec, $cacheOptions)
@@ -94,29 +96,127 @@ class ZeitfadenFlyImageService
 					
 	}
 	
+  
+  protected function markAsRunning($imageIdUrl, $flySpec)
+  {
+    $document = array(
+      'image_id_url' => $imageIdUrl,
+      'serialized_specification' => $flySpec->serialize()
+    );
+    
+    $this->logCollection->insert($document);
+  }
+
+  protected function unmarkAsRunning($imageIdUrl, $flySpec)
+  {
+    error_log('unmakring this.');
+    $document = array(
+      'image_id_url' => $imageIdUrl,
+      'serialized_specification' => $flySpec->serialize()
+    );
+    
+    $this->logCollection->remove($document);
+  }
 	
+  protected function isRunning($imageIdUrl, $flySpec)
+  {
+    $document = array(
+      'image_id_url' => $imageIdUrl,
+      'serialized_specification' => $flySpec->serialize()
+    );
+    
+    $found = $this->logCollection->findOne($document);
+    
+    if (!$found)
+    {
+      return false;
+    }
+    else
+    {
+      return true;
+    }
+    
+  }
+  
 		
 	public function getFly($imageIdUrl, $flySpec, $cacheOptions)
 	{
+    $timeoutInSeconds = 15;
+    
 		$date = new DateTime();
+    $currentTimestamp = $date->getTimestamp();
     
 		$serializedSpec = $flySpec->serialize();
-		
-		$flyDocument = $this->collection->findOne(array('image_id_url'=> $imageIdUrl, 'serialized_specification' => $serializedSpec));
-    
-    error_log($flyDocument['expirationTimestamp']);
-    error_log($date->getTimestamp());
-    error_log($cacheOptions->getExpirationTimestamp());
+		$flyDocument = $this->collection->findOne(array('image_id_url'=> $imageIdUrl, 'serialized_specification' => $serializedSpec, 'expirationTimestamp' => array('$gt' => $currentTimestamp)));
     if ($cacheOptions->getExpirationTimestamp() < $date->getTimestamp())
     {
       error_log('outdated timestamp');
       return false;
     }
     
-		if (!$flyDocument || ($flyDocument['expirationTimestamp'] < $date->getTimestamp()))
+		if (!$flyDocument)
 		{
-		  error_log('doing it why??????????????????');
-		  $flyDocument = $this->createAndMergeFly($imageIdUrl, $flySpec, $cacheOptions);
+		  error_log('did not get any image... now making it.');
+      
+      if ($this->isRunning($imageIdUrl, $flySpec))
+      {
+        $counter = 0;
+        while (($counter < $timeoutInSeconds) && $this->isRunning($imageIdUrl, $flySpec))
+        {
+          $timeout = 1;
+          error_log('it is running... now making up the timer');
+          $base = new EventBase();
+          $e = Event::timer($base,function($timeout) use (&$e){
+            error_log('inside the timer, after 1 second.');
+            $e->delTimer();
+          }, $timeout);
+          
+          $e->addTimer($timeout);
+          $base->loop();
+          
+          $counter++;
+          
+        }      
+  
+        if ($this->isRunning($imageIdUrl, $flySpec))
+        {
+          if ($counter == $timeoutInSeconds)
+          {
+            // deadlook. something off. 
+            $this->unmarkAsRunning($imageIdUrl, $flySpec);
+          }
+          
+          // do my own.
+          error_log('doing my own thumbnail');
+          $flyDocument = $this->createAndMergeFly($imageIdUrl, $flySpec, $cacheOptions);
+          
+        }
+        else 
+        {
+          // now it seems finished.
+          error_log('now it seems finished');
+          $flyDocument = $this->collection->findOne(array('image_id_url'=> $imageIdUrl, 'serialized_specification' => $serializedSpec, 'expirationTimestamp' => array('$gt' => $currentTimestamp)));
+          if (!$flyDocument)
+          {
+            error_log('this is strang and to look into. did not get my image. Making my own here also.');
+            $flyDocument = $this->createAndMergeFly($imageIdUrl, $flySpec, $cacheOptions);
+          }
+          
+        }
+          
+      }
+      else 
+      {
+        $this->markAsRunning($imageIdUrl, $flySpec);
+        $flyDocument = $this->createAndMergeFly($imageIdUrl, $flySpec, $cacheOptions);
+        $this->unmarkAsRunning($imageIdUrl, $flySpec);
+      }   
+      
+      
+      
+      
+      
+      
 		}
 		
 		return $flyDocument;
