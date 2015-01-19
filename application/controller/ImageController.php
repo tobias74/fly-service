@@ -110,23 +110,21 @@ class ImageController extends AbstractZeitfadenController
 
   	if ($imageSize === 'custom')
   	{
-  		$width = $this->_request->getParam('width',100);		
-  		$height = $this->_request->getParam('height',100);		
+  		$width = $this->_request->getParam('maxWidth',100);		
+  		$height = $this->_request->getParam('maxHeight',100);		
   		$imageSize = array(
   			'height' => $height,
   			'width' => $width
   		);
   	}
   	
+    
   	return $imageSize;
 	  	
   }
   
   public function getCachedImageAction()
   {
-    error_log('111111112222gut hier.');
-  	
-    
     
     $format =  $this->_request->getParam('format','original');
     $imageUrl = $this->_request->getParam('imageUrl','');
