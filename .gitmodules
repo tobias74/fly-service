@@ -1,3 +1,12 @@
 [submodule "htdocs/bootstrap"]
 	path = htdocs/bootstrap
 	url = https://github.com/twitter/bootstrap.git
+[submodule "my-frameworks/pivole-und-pavoli"]
+	path = my-frameworks/pivole-und-pavoli
+	url = https://github.com/tobias74/pivole-und-pavoli.git
+[submodule "my-frameworks/sugarloaf"]
+	path = my-frameworks/sugarloaf
+	url = https://github.com/tobias74/sugarloaf.git
+[submodule "my-frameworks/tiro-php-profiler"]
+	path = my-frameworks/tiro-php-profiler
+	url = https://github.com/tobias74/tiro-php-profiler.git
