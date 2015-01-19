@@ -16,8 +16,8 @@ $baseDir = dirname(__FILE__);
 
 
 
-require_once($baseDir.'/../my-frameworks/sugarloaf/sugarloaf.php');
-require_once($baseDir.'/../my-frameworks/tiro-php-profiler/tiro.php');
+require_once($baseDir.'/../my-frameworks/sugarloaf/lib/sugarloaf.php');
+require_once($baseDir.'/../my-frameworks/tiro-php-profiler/src/tiro.php');
 require_once($baseDir.'/../my-frameworks/pivole-und-pavoli/src/pivole-und-pavoli.php');
 
 //require_once($baseDir.'/../my-frameworks/brokenpottery/brokenpottery.php');
