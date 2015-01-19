@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Resized Image Cache</title
+    <title>Resized Image Cache (beta)</title
       
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
@@ -45,7 +45,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Resized Image Cache</a>
+          <a class="navbar-brand" href="#">Resized Image Cache (beta)</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <form style="display:none;" class="navbar-form navbar-right">
@@ -66,6 +66,7 @@
       <div class="container">
         <h1>Resized Images as a Service!</h1>
         <p>This Service offers resizing and caching of images identified by a URL. All your Resizing- and Caching-Needs can be fullfilled by one simple GET-Request. You'll see. Scroll on. </p>
+        <p>Please be advised that this service is still in beta-phase. Do not use it in production!</p>
         <p style="display:none;"><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
       </div>
     </div>
