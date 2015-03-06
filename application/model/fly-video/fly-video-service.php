@@ -149,6 +149,8 @@ class FlyVideoService
     $hash['fly_id'] = $document['_id'];
     $hash['fly_collection_name'] = $this->collectionName;
     $hash['fly_content_type'] = 'video/'.$document['specification']['format'];
+    $hash['type'] = 'video/'.$document['specification']['format'];
+    
     $gridFS->storeFile($targetVideoFile,array("metadata" => $hash));
     
     error_log('did store the file in gridfs');

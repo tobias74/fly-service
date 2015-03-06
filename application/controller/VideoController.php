@@ -45,7 +45,7 @@ class VideoController extends AbstractZeitfadenController
       $this->_response->appendValue('gridFileId', $gridFile->file['_id']->$name);
       //$this->_response->appendValue('hostName', $gridFile->file['_id']->getHostname());
       $this->_response->appendValue('collectionName','fly_service');
-      $this->_response->appendValue('mongoServerIp','localhost');
+      $this->_response->appendValue('mongoServerIp',$_SERVER['SERVER_NAME']);
       $this->_response->appendValue('done',1);
     }
     catch (\Exception $e)
