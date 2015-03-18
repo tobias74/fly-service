@@ -248,7 +248,6 @@ class ZeitfadenFlyImageService
     {
       error_log($e->getMessage());
       error_log('copuld not find image '.$imageIdUrl);	
-      die();
       $origi=ImageCreate(150,150);
       $bgc=ImageColorAllocate($origi,255,255,255);
       $tc=ImageColorAllocate($origi,0,0,0);
