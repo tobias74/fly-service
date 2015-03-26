@@ -10,3 +10,6 @@
 [submodule "my-frameworks/tiro-php-profiler"]
 	path = my-frameworks/tiro-php-profiler
 	url = https://github.com/tobias74/tiro-php-profiler.git
+[submodule "my-frameworks/cached-image-service"]
+	path = my-frameworks/cached-image-service
+	url = https://github.com/tobias74/cached-image-service.git
