@@ -38,21 +38,9 @@ class VideoController extends AbstractZeitfadenController
     $quality = $this->_request->getParam('quality','medium');
     $format = $this->_request->getParam('format','webm');
     //$imageUrl = 'http://goldenageofgaia.com/wp-content/uploads/2012/12/Field-flowers-image8.jpg';
-    try
-    {
-      $gridFile = $this->getFlyVideoService()->getFlyGridFile($videoUrl, $this->getFlySpecForVideo($quality,$format));
-      $name='$id';
-      $this->_response->appendValue('gridFileId', $gridFile->file['_id']->$name);
-      //$this->_response->appendValue('hostName', $gridFile->file['_id']->getHostname());
-      $this->_response->appendValue('collectionName','fly_service');
-      $this->_response->appendValue('mongoServerIp',$_SERVER['SERVER_NAME']);
-      $this->_response->appendValue('done',1);
-    }
-    catch (\Exception $e)
-    {
-      $this->_response->appendValue('done',0);
-      die('send back default video file with message to wait: '.$e->getMessage());
-    }
+    
+    $hash = $this->getFlyVideoService()->getCachedVideoData($videoUrl, $this->getFlySpecForVideo($quality,$format));
+    $this->_response->setHash($hash);
   }        
 
 
