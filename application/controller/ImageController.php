@@ -10,12 +10,7 @@ class ImageController extends AbstractZeitfadenController
   protected function declareDependencies()
   {
     return array_merge(array(
-      'OAuth2Service' => 'oAuth2Service',
-      'StationOrderer' => 'stationOrderer',
-      'SearchHelperProvider' => 'searchHelperProvider',
-      'DatabaseShard' => 'dbShard',
       'FlyImageService' => 'flyImageService',
-      'AttachmentHelperProvider' => 'attachmentHelperProvider'
     ), parent::declareDependencies());  
   }
 
@@ -36,72 +31,6 @@ class ImageController extends AbstractZeitfadenController
     return $cacheOptions;
   }
       
-  protected function getFlySpecForSize($size,$format)
-  {
-    $flySpec = new FlyImageSpecification();
-    
-    switch ($format)
-    {
-      case 'original':
-        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_INSIDE);
-        $faktor = 1;
-        break;
-        
-      case 'square':
-        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
-        $faktor = 1;
-        break;
-
-      case '4by3':
-        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
-        $faktor = 4/3;
-        break;
-
-      case '9by6':
-        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
-        $faktor = 9/6;
-        break;
-        
-      default:
-        throw new \ErrorException('no format given');
-        
-    }
-    
-    if (is_string($size))
-	{
-	    switch ($size)
-	    {
-	      case "small": 
-	        $flySpec->setMaximumWidth(100*$faktor);
-	        $flySpec->setMaximumHeight(100);
-	        break;
-	        
-	      case "medium": 
-	        $flySpec->setMaximumWidth(300*$faktor);
-	        $flySpec->setMaximumHeight(300);
-	        break;
-	        
-	      case "big": 
-	        $flySpec->setMaximumWidth(800*$faktor);
-	        $flySpec->setMaximumHeight(800);
-	        break;
-	        
-        case "original":
-          $flySpec->useOriginalSize();
-          break;
-          
-	      default:
-	        throw new ErrorException('Coding problem in zeitafrden fadcede');
-	    }
-	}
-	else
-	{
-        $flySpec->setMaximumWidth($size['width']*$faktor);
-        $flySpec->setMaximumHeight($size['height']);
-	}
-    
-    return $flySpec;
-  }
   
   protected function getImageSize()
   {
@@ -130,7 +59,7 @@ class ImageController extends AbstractZeitfadenController
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
     
-    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
+    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlyImageService()->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
     $fileTime = $gridFile->file['uploadDate']->sec;
 
     
@@ -171,21 +100,9 @@ class ImageController extends AbstractZeitfadenController
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
 
+    $hash = $this->getFlyImageService()->getCachedImageData($imageUrl, $this->getFlyImageService()->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
     
-    try
-    {
-      $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
-      $name='$id';
-      $this->_response->appendValue('gridFileId', $gridFile->file['_id']->$name);
-      $this->_response->appendValue('collectionName','fly_service');
-      $this->_response->appendValue('mongoServerIp',$_SERVER['SERVER_NAME']);
-      $this->_response->appendValue('done',1);
-    }
-    catch (\Exception $e)
-    {
-      $this->_response->appendValue('done',0);
-      error_log('send back default video file with message to wait: '.$e->getMessage());
-    }
+    $this->_response->setHash($hash);
   }        
 
   

@@ -20,27 +20,13 @@ abstract class AbstractZeitfadenController extends SL\DependencyInjectable
 	{
 		return array(
 			'Profiler' => 'profiler',
-      'OAuth2Service' => 'oAuth2Service',
-			'QueryEngine' => '_queryEngine',
-			'Facebook' => '_facebook',
 			'ZeitfadenService' => 'service'
 		);	
 	}
 	
-  protected function getOAuth2Service()
-  {
-    return $this->oAuth2Service;
-  }
-		
 	public function getService()
 	{
 		return $this->service;
-	}
-	
-	
-	protected function declareActionsThatNeedLogin()
-	{
-		return array();
 	}
 	
 	public function execute($actionName)
@@ -62,51 +48,6 @@ abstract class AbstractZeitfadenController extends SL\DependencyInjectable
 		return $this->_request->getParam($name,$default);
 	}
 	
-	
-	public function getLoggedInUser()
-	{
-		return $this->getService()->getLoggedInUser();
-	}
-	
-	
-	protected function isUserLoggedIn()
-	{
-		if ($this->getLoggedInUser()->getId() !== false)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-	
-	public function updateLoginIdentity()
-	{
-	    //
-    if ($this->getService()->isOAuth2Request())
-    {
-      // this is an oauth2-request.
-      $this->getService()->loginUserByOAuth2();
-    }
-    else 
-    {
-      // it is not an oauth2 request. carry on.
-      $email = $this->_request->getSessionVar('email','');
-      $password = $this->_request->getSessionVar('password','');
-      $facebookUserId = $this->getFacebook()->getUser();
-    
-      $this->getService()->loginUserByCredentials(array(
-        'email' => $email,
-        'password' => $password,
-        'facebookUserId' => $facebookUserId 
-      ));
-            
-    }
-	    	    
-			
-		
-	}
 	
 	
 }

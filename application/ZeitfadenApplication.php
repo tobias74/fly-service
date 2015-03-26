@@ -5,14 +5,6 @@ use SugarLoaf as SL;
 class ZeitfadenApplication
 {
 	
-	const STATUS_OK = true;
-	const STATUS_ERROR_NOT_LOGGED_IN = -10; 
-	const STATUS_GENERAL_ERROR = -100; 
-	const STATUS_EMAIL_ALREADY_TAKEN = -15;
-	const STATUS_ERROR_INVALID_ACTION = -1001;
-	const STATUS_ERROR_WRONG_INPUT = -5;
-	const STATUS_ERROR_SOLE_NOT_FOUND = -5001; 
-	
 	public function __construct($config)
 	{
 		
@@ -105,45 +97,6 @@ class ZeitfadenApplication
 			array()
 		));
 		
-		
-		$routeManager->addRoute(new \PivoleUndPavoli\Route(
-			'getUserById/:userId',
-			array(
-				'controller' => 'user',
-				'action' => 'getById'
-			)
-		));
-
-		$routeManager->addRoute(new \PivoleUndPavoli\Route(
-			'getStationById/:stationId',
-			array(
-				'controller' => 'station',
-				'action' => 'getById'
-			)
-		));
-
-    $routeManager->addRoute(new \PivoleUndPavoli\Route(
-        'getStationsByQuery/:query',
-        array(
-            'controller' => 'station',
-            'action' => 'getByQuery'
-        )
-    ));
-
-    $routeManager->addRoute(new \PivoleUndPavoli\Route(
-        'getUsersByQuery/:query',
-        array(
-            'controller' => 'user',
-            'action' => 'getByQuery'
-        )
-    ));
-    		
-    $routeManager->addRoute(new \PivoleUndPavoli\Route(
-        'oauth/:action/*',
-        array(
-            'controller' => 'OAuth2'
-        )
-    ));
     								
 		return $routeManager;
 	}
