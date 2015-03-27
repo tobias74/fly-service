@@ -115,7 +115,7 @@ class ZeitfadenApplication
     $depList = $dm->registerDependencyManagedService(new SL\ManagedService('InstantScheduler','\CachedImageService\InstantScheduler'));
     $depList->addDependency('CachedVideoService', new SL\ManagedComponent('StationFlyVideoService','\CachedImageService\StationFlyVideoService'));
 
-    $depList = $dm->registerDependencyManagedService(new SL\ManagedService('ZeitfadenVideoScheduler','\CachedImageService\ZeitfadenVideoScheduler'));
+    $depList = $dm->registerDependencyManagedService(new SL\ManagedService('ZeitfadenVideoScheduler','\CachedImageService\OldVideoScheduler'));
 
     
     $depList = $dm->registerDependencyManagedService(new SL\ManagedSingleton('StationFlyImageService', '\CachedImageService\FlyImageService'));
