@@ -6,12 +6,21 @@
 
 class VideoController extends AbstractZeitfadenController
 {
-            
-  protected function declareDependencies()
+      
+  public function setVideoCacheServiceProvider($val)
   {
-    return array_merge(array(
-      'FlyVideoService' => 'flyVideoService',
-    ), parent::declareDependencies());  
+    $this->videoCacheServiceProvider = $val;
+  }
+  
+  protected function getVideoCacheService()
+  {
+    if (!isset($this->videoCacheService))
+    {
+      $this->videoCacheService = $this->videoCacheServiceProvider->provide(array(
+        'mongo_db_host' => 'services.zeitfaden.com'
+      ));
+    }
+    return $this->videoCacheService;
   }
       
   protected function getFlySpecForVideo($quality,$format)
@@ -27,7 +36,7 @@ class VideoController extends AbstractZeitfadenController
     $flyId = $this->_request->getParam('flyId','');
 
     error_log('perform transcoding...');
-    $this->getFlyVideoService()->performTranscoding($flyId);
+    $this->getVideoCacheService()->performTranscoding($flyId);
     
   }
   
@@ -39,7 +48,7 @@ class VideoController extends AbstractZeitfadenController
     $format = $this->_request->getParam('format','webm');
     //$imageUrl = 'http://goldenageofgaia.com/wp-content/uploads/2012/12/Field-flowers-image8.jpg';
     
-    $hash = $this->getFlyVideoService()->getCachedVideoData($videoUrl, $this->getFlySpecForVideo($quality,$format));
+    $hash = $this->getVideoCacheService()->getCachedVideoData($videoUrl, $this->getFlySpecForVideo($quality,$format));
     $this->_response->setHash($hash);
   }        
 
@@ -55,7 +64,7 @@ class VideoController extends AbstractZeitfadenController
     try
     {
       
-      $gridFile = $this->getFlyVideoService()->getFlyGridFile($videoUrl, $this->getFlySpecForVideo($quality,$format));
+      $gridFile = $this->getVideoCacheService()->getFlyGridFile($videoUrl, $this->getFlySpecForVideo($quality,$format));
       $fileTime = $gridFile->file['uploadDate']->sec;
       $this->_response->addHeader('Content-Length: '.$gridFile->getSize());
       $this->_response->addHeader('Last-Modified: '.gmdate('D, d M Y H:i:s',$fileTime).' GMT',true,200);
@@ -78,23 +87,6 @@ class VideoController extends AbstractZeitfadenController
     die('hello');
   }  
   
-  public function serveFileByIdAction()
-  {
-    
-    $userId = $this->_request->getParam('userId',0);
-    $fileId = $this->_request->getParam('fileId',0);
-
-    $file = $this->sessionFacade->getFileById($fileId, $userId);
-    $fileContent = $this->sessionFacade->getFileContent($file);
-    $this->_response->disable();
-    
-    header("Content-Disposition: attachment; filename=".$file->getFileName());
-    header("Content-type: ".$file->getFileType());
-    //print_r($this->attachment);
-
-    echo $fileContent;
-    
-  }
   
 }
 

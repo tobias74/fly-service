@@ -7,11 +7,20 @@
 class ImageController extends AbstractZeitfadenController
 {
             
-  protected function declareDependencies()
+  public function setImageCacheServiceProvider($val)
   {
-    return array_merge(array(
-      'FlyImageService' => 'flyImageService',
-    ), parent::declareDependencies());  
+    $this->imageCacheServiceProvider = $val;
+  }
+  
+  protected function getImageCacheService()
+  {
+    if (!isset($this->imageCacheService))
+    {
+      $this->imageCacheService = $this->imageCacheServiceProvider->provide(array(
+        'mongo_db_host' => 'services.zeitfaden.com'
+      ));
+    }
+    return $this->imageCacheService;
   }
 
   protected function getCacheOptions($request)
@@ -38,22 +47,22 @@ class ImageController extends AbstractZeitfadenController
     switch ($format)
     {
       case 'original':
-        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_INSIDE);
+        $flySpec->setMode(\CachedImageService\FlyImageSpecification::TOUCH_BOX_FROM_INSIDE);
         $faktor = 1;
         break;
         
       case 'square':
-        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        $flySpec->setMode(\CachedImageService\FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
         $faktor = 1;
         break;
 
       case '4by3':
-        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        $flySpec->setMode(\CachedImageService\FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
         $faktor = 4/3;
         break;
 
       case '9by6':
-        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        $flySpec->setMode(\CachedImageService\FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
         $faktor = 9/6;
         break;
         
@@ -126,7 +135,7 @@ class ImageController extends AbstractZeitfadenController
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
     
-    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
+    $gridFile = $this->getImageCacheService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
     $fileTime = $gridFile->file['uploadDate']->sec;
 
     
@@ -158,7 +167,7 @@ class ImageController extends AbstractZeitfadenController
   public function removeExpiredImagesAction()
   {
     error_log('removing expired images');
-    $this->getFlyImageService()->removeExpiredImages();
+    $this->getImageCacheService()->removeExpiredImages();
   }  
     
   public function getFlyImageIdAction()
@@ -167,34 +176,16 @@ class ImageController extends AbstractZeitfadenController
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
 
-    $hash = $this->getFlyImageService()->getCachedImageData($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
+    $hash = $this->getImageCacheService()->getCachedImageData($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
     
     $this->_response->setHash($hash);
   }        
 
   
-  public function serveFileByIdAction()
-  {
-    
-    $userId = $this->_request->getParam('userId',0);
-    $fileId = $this->_request->getParam('fileId',0);
-
-    $file = $this->sessionFacade->getFileById($fileId, $userId);
-    $fileContent = $this->sessionFacade->getFileContent($file);
-    $this->_response->disable();
-    
-    header("Content-Disposition: attachment; filename=".$file->getFileName());
-    header("Content-type: ".$file->getFileType());
-    //print_r($this->attachment);
-
-    echo $fileContent;
-    
-  }
-  
   public function clearAllAction()
   {
     $imageUrl = $this->_request->getParam('imageUrl','');
-    $this->getFlyImageService()->deleteAllFlys($imageUrl);
+    $this->getImageCacheService()->deleteAllFlys($imageUrl);
   	
   }
   
