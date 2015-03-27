@@ -110,12 +110,20 @@ class ZeitfadenApplication
 		$depList = $dm->registerDependencyManagedService(new SL\ManagedSingleton('SqlProfiler','\Tiro\Profiler'));
 		
 		$depList = $dm->registerDependencyManagedService(new SL\ManagedSingleton('PhpProfiler','\Tiro\Profiler'));
+
+
+    $depList = $dm->registerDependencyManagedService(new SL\ManagedService('InstantScheduler','\CachedImageService\InstantScheduler'));
+    $depList->addDependency('CachedVideoService', new SL\ManagedComponent('StationFlyVideoService','\CachedImageService\StationFlyVideoService'));
+
+    $depList = $dm->registerDependencyManagedService(new SL\ManagedService('ZeitfadenVideoScheduler','\CachedImageService\ZeitfadenVideoScheduler'));
+
     
-    $depList = $dm->registerDependencyManagedService(new SL\ManagedSingleton('StationFlyImageService', 'ZeitfadenFlyImageService'));
+    $depList = $dm->registerDependencyManagedService(new SL\ManagedSingleton('StationFlyImageService', '\CachedImageService\FlyImageService'));
     $depList->addDependency('Profiler', new SL\ManagedComponent('PhpProfiler'));
 						
-    $depList = $dm->registerDependencyManagedService(new SL\ManagedSingleton('StationFlyVideoService', 'FlyVideoService'));
+    $depList = $dm->registerDependencyManagedService(new SL\ManagedSingleton('StationFlyVideoService', '\CachedImageService\FlyVideoService'));
     $depList->addDependency('Profiler', new SL\ManagedComponent('PhpProfiler'));
+    $depList->addDependency('Scheduler', new SL\ManagedComponent('ZeitfadenVideoScheduler'));
 
             		
     $depList = $dm->registerDependencyManagedService(new SL\ManagedService('ImageController'));

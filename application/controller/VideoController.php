@@ -16,7 +16,7 @@ class VideoController extends AbstractZeitfadenController
       
   protected function getFlySpecForVideo($quality,$format)
   {
-    $flySpec = new FlyVideoSpecification();
+    $flySpec = new \CachedImageService\FlyVideoSpecification();
     $flySpec->format = $format;
     $flySpec->quality = $quality;
     return $flySpec;
