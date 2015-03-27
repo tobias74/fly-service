@@ -16,7 +16,7 @@ class ImageController extends AbstractZeitfadenController
 
   protected function getCacheOptions($request)
   {
-    $cacheOptions = new ImageCacheOptions();
+    $cacheOptions = new \CachedImageService\ImageCacheOptions();
 
     if ($request->hasParam('expirationTimestamp'))
     {
@@ -29,6 +29,73 @@ class ImageController extends AbstractZeitfadenController
     }
     
     return $cacheOptions;
+  }
+     
+  protected function getFlySpecForSize($size,$format)
+  {
+    $flySpec = new \CachedImageService\FlyImageSpecification();
+    
+    switch ($format)
+    {
+      case 'original':
+        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_INSIDE);
+        $faktor = 1;
+        break;
+        
+      case 'square':
+        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        $faktor = 1;
+        break;
+
+      case '4by3':
+        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        $faktor = 4/3;
+        break;
+
+      case '9by6':
+        $flySpec->setMode(FlyImageSpecification::TOUCH_BOX_FROM_OUTSIDE);
+        $faktor = 9/6;
+        break;
+        
+      default:
+        throw new \ErrorException('no format given');
+        
+    }
+    
+    if (is_string($size))
+  {
+      switch ($size)
+      {
+        case "small": 
+          $flySpec->setMaximumWidth(100*$faktor);
+          $flySpec->setMaximumHeight(100);
+          break;
+          
+        case "medium": 
+          $flySpec->setMaximumWidth(300*$faktor);
+          $flySpec->setMaximumHeight(300);
+          break;
+          
+        case "big": 
+          $flySpec->setMaximumWidth(800*$faktor);
+          $flySpec->setMaximumHeight(800);
+          break;
+          
+        case "original":
+          $flySpec->useOriginalSize();
+          break;
+          
+        default:
+          throw new ErrorException('Coding problem in zeitafrden fadcede');
+      }
+  }
+  else
+  {
+        $flySpec->setMaximumWidth($size['width']*$faktor);
+        $flySpec->setMaximumHeight($size['height']);
+  }
+    
+    return $flySpec;
   }
       
   
@@ -59,7 +126,7 @@ class ImageController extends AbstractZeitfadenController
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
     
-    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlyImageService()->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
+    $gridFile = $this->getFlyImageService()->getFlyGridFile($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
     $fileTime = $gridFile->file['uploadDate']->sec;
 
     
@@ -100,7 +167,7 @@ class ImageController extends AbstractZeitfadenController
     $imageUrl = $this->_request->getParam('imageUrl','');
     $imageSize = $this->getImageSize();
 
-    $hash = $this->getFlyImageService()->getCachedImageData($imageUrl, $this->getFlyImageService()->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
+    $hash = $this->getFlyImageService()->getCachedImageData($imageUrl, $this->getFlySpecForSize($imageSize,$format), $this->getCacheOptions($this->_request));
     
     $this->_response->setHash($hash);
   }        
